@@ -1,6 +1,12 @@
 #!/bin/python
 
 import os, shutil, string
+from PIL import Image # pip install Pillow
+from multiprocessing import Pool
+# from threading import Thread
+import threading
+
+SIZE = (1920, 1060)
 
 # Path to converted images and videos
 path = "/mnt/data/tt/collect-test/pc/"
@@ -9,6 +15,8 @@ path = "/mnt/data/tt/collect-test/pc/"
 sourcedir = path + "or"
 
 extentions = (".jpg", ".jpeg", ".JPG")
+
+pool = Pool()
 
 # Sort file names with path contains original images
 file_list = os.listdir(sourcedir)
@@ -20,6 +28,10 @@ time_sorted_list = sorted(full_list, key = os.path.getmtime)
 sorted_filename_list = [os.path.basename(i) for i in time_sorted_list]
 # print sorted_filename_list
 
+def remove(f):
+  os.remove(f)
+  # print "Remove: " + file
+
 # Remove renamed files from "path" folder
 def removeFiles():
 
@@ -27,9 +39,17 @@ def removeFiles():
   files = os.listdir(path)
   for file in files:
     if file.endswith(extentions):
-      os.remove(path + file)
-      print "Remove: " + file
+      # os.remove(path + file)
+      # print "Remove: " + file
+      t = threading.Thread(target=remove, args=(path + file,))
+      t.start()
+      t.join()
 
+
+
+def cc(n):
+  convert = "convert " + n + " -resize 1920x1060 " + n
+  os.system(convert)
 
 def renameAndConvert():
 
@@ -50,14 +70,31 @@ def renameAndConvert():
 
         shutil.copy(sourcedir + "/" + item, path + newname)
 
+        # t = Thread(target=cc, args=(path + newname,))
+        # t.start()
+        # t.join()
+
+
         # Run bash
-        # convert = "convert " + path + newname + " -resize 1920x1060 " + path + newname
+        convert = "convert " + path + newname + " -resize 1920x1060 " + path + newname
         # print convert
-        # os.system(convert)
+        os.system(convert)
         #
 
 removeFiles()
 # renameAndConvert()
+#
+#
+threads = []
+t = threading.Thread(target=renameAndConvert, args=())
+
+threads.append(t)
+t.start()
+# t.join()
+
+
+
+
 
 
 
